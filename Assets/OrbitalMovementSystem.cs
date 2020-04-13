@@ -19,6 +19,6 @@ public class OrbitalMovementSystem : SystemBase
                 rotation.Value = math.mul(math.normalize(rotation.Value), rot);
                 translation.Value = math.mul(rot, translation.Value);
             })
-            .Schedule();
+            .ScheduleParallel();
     }
 }

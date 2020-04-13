@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public class FireSystem : SystemBase, IDeclareReferencedPrefabs
 {
@@ -35,8 +35,14 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
     {
         public float deltaTime;
 
+        [ReadOnly]
+        [DeallocateOnJobCompletion]
+        public NativeArray<Entity> entities;
+        [ReadOnly] public ComponentDataFromEntity<FactionComponent> factions;
+        [ReadOnly] public ComponentDataFromEntity<Translation> translations;
+
         public EntityCommandBuffer.Concurrent commandBuffer;
-        public Entity prefab;
+        [ReadOnly] public Entity prefab;
         public Unity.Mathematics.Random random;
 
         [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
@@ -57,11 +63,10 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
                     int selected;
                     do
                     {
-                        selected = random.NextInt(chunk.Count);
-                    }
-                    while (chunkFactions[i].faction == chunkFactions[selected].faction);
+                        selected = random.NextInt(entities.Length);
+                    } while (factions[entities[selected]].faction == chunkFactions[i].faction);
 
-                    var vec = chunkTranslations[selected].Value - chunkTranslations[i].Value;
+                    var vec = translations[entities[selected]].Value - chunkTranslations[i].Value;
                     var d = math.length(vec);
                     var g = 9.8f;
                     var v = chunkBatteries[i].speed;
@@ -77,6 +82,13 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
                         commandBuffer.SetComponent(chunkIndex, instance, new Translation { Value = chunkTranslations[i].Value });
                     }
                 }
+
+                chunkBatteries[i] = new BatteryComponent
+                {
+                    interval = chunkBatteries[i].interval,
+                    speed = chunkBatteries[i].speed,
+                    countDown = countDown + (countDown > 0 ? 0 : chunkBatteries[i].interval),
+                };
             }
         }
     }
@@ -96,6 +108,9 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
             commandBuffer = barrier.CreateCommandBuffer().ToConcurrent(),
             prefab = prefab,
             random = random,
+            entities = group.ToEntityArray(Allocator.TempJob),
+            factions = GetComponentDataFromEntity<FactionComponent>(true),
+            translations = GetComponentDataFromEntity<Translation>(true),
             batteryComponentType = batteryComponentType,
             factionComponentType = factionComponentType,
             translationType = translationType,

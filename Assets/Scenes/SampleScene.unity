@@ -274,8 +274,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   template: {fileID: 8535163857409114711, guid: e6c6ecdd764181a46bf83a6b28c2a293,
     type: 3}
-  count: 2
-  radius: 4
+  count: 10000
+  radius: 30
   f: 10
 --- !u!1 &705507993
 GameObject:

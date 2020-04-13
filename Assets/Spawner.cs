@@ -48,7 +48,7 @@ public class Spawner : MonoBehaviour
             entityManager.AddComponentData(instance, new BatteryComponent
             {
                 interval = Random.Range(5, 10),
-                speed = Random.Range(150, 200),
+                speed = 40,
             });
         }
 
@@ -57,6 +57,6 @@ public class Spawner : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawSphere(transform.position, radius);
+        Gizmos.DrawWireSphere(transform.position, radius);
     }
 }
