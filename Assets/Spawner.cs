@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 public class Spawner : MonoBehaviour
@@ -21,6 +19,9 @@ public class Spawner : MonoBehaviour
         SpawnFaction(position, FactionComponent.Faction.A);
 
         SpawnFaction(-position, FactionComponent.Faction.B);
+
+        World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity(typeof(UserCommandComponent));
+        World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity(typeof(FormationCenterComponent), typeof(Translation), typeof(Rotation));
     }
 
     private void SpawnFaction(Vector3 basePos, FactionComponent.Faction faction)
@@ -57,6 +58,7 @@ public class Spawner : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, radius);
     }
 }
