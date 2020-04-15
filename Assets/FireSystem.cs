@@ -33,9 +33,7 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
     {
         public float deltaTime;
 
-        [ReadOnly]
-        [DeallocateOnJobCompletion]
-        public NativeArray<Entity> entities;
+        [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<Entity> entities;
         [ReadOnly] public ComponentDataFromEntity<FactionComponent> factions;
         [ReadOnly] public ComponentDataFromEntity<Translation> translations;
 
@@ -76,7 +74,7 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
 
                         var vxz = math.normalize(new float3(vec.x, 0, vec.z));
                         var velocity = math.up() * math.sin(theta) * v + vxz * math.cos(theta) * v;
-                        commandBuffer.AddComponent<BulletComponent>(chunkIndex, instance, new BulletComponent { vec = velocity });
+                        commandBuffer.AddComponent(chunkIndex, instance, new BulletComponent { vec = velocity });
                         commandBuffer.SetComponent(chunkIndex, instance, new Translation { Value = chunkTranslations[i].Value });
                     }
                 }
@@ -98,7 +96,7 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
         var factionComponentType = GetArchetypeChunkComponentType<FactionComponent>();
         var batteryComponentType = GetArchetypeChunkComponentType<BatteryComponent>();
 
-        var random = new Unity.Mathematics.Random((uint)UnityEngine.Random.Range(1, 100000));
+        var random = new Unity.Mathematics.Random((uint) UnityEngine.Random.Range(1, 100000));
 
         var job = new FireJob
         {

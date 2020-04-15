@@ -28,16 +28,8 @@ public class MouseInputSystem : SystemBase
                 destination = hitInfo.point
             });
 
-            //var formationCenterUpdateSystem = world.GetExistingSystem<FormationCenterUpdateSystem>();
-            //var navMeshQuery = formationCenterUpdateSystem.navMeshQuery;
-
-            //var translation = group.GetSingleton<Translation>();
-
-            //var start = navMeshQuery.MapLocation(translation.Value, Vector3.one * 10, 0);
-            //var end = navMeshQuery.MapLocation(hitInfo.point, Vector3.one * 10, 0);
-            
-            //formationCenterUpdateSystem.queryDone = false;
-            //navMeshQuery.BeginFindPath(start, end);
+            var formationCenterUpdateSystem = world.GetExistingSystem<FormationCenterUpdateSystem>();
+            formationCenterUpdateSystem.UpdatePath(hitInfo.point);
         }
     }
 }

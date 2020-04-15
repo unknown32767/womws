@@ -1,9 +1,7 @@
-﻿using Unity.Collections;
-using Unity.Entities;
-using Unity.Transforms;
+﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Experimental.AI;
 
 //[UpdateAfter(typeof(MouseInputSystem))]
 //public class FormationCenterUpdateSystem : SystemBase
@@ -52,25 +50,66 @@ using UnityEngine.Experimental.AI;
 public class FormationCenterUpdateSystem : SystemBase
 {
     private NavMeshPath path;
-
-    private EntityQuery group;
+    private int currentSegment;
 
     protected override void OnCreate()
     {
         path = new NavMeshPath();
-        
-        group = GetEntityQuery(typeof(FormationCenterComponent), typeof(Translation));
+    }
+
+    public void UpdatePath(Vector3 end)
+    {
+        var start = GetSingleton<FormationCenterComponent>().position;
+
+        NavMesh.CalculatePath(start, end, NavMesh.AllAreas, path);
+
+        currentSegment = 0;
     }
 
     protected override void OnUpdate()
     {
-        var start = group.GetSingleton<Translation>().Value;
-        var end = GetSingleton<UserCommandComponent>().destination;
+        if (path.status != NavMeshPathStatus.PathComplete)
+            return;
 
-        NavMesh.CalculatePath(start, end, NavMesh.AllAreas, path);
+        var formationCenter = GetSingleton<FormationCenterComponent>();
 
-        foreach (var pos in path.corners)
+        Vector3 nextPos = formationCenter.position;
+        var speed = formationCenter.speed;
+        var rotation = formationCenter.rotation;
+        var travelDistance = speed * Time.DeltaTime;
+
+        while (travelDistance > 0 && currentSegment < path.corners.Length - 1)
         {
+            var segmentLength = math.distance(nextPos, path.corners[currentSegment + 1]);
+
+            if (travelDistance < segmentLength)
+            {
+                nextPos = math.lerp(nextPos, path.corners[currentSegment + 1], travelDistance / segmentLength);
+                travelDistance = 0;
+            }
+            else
+            {
+                travelDistance -= segmentLength;
+                nextPos = path.corners[currentSegment + 1];
+                currentSegment += 1;
+            }
         }
+
+        if (currentSegment < path.corners.Length - 1)
+            rotation = math.normalize(quaternion.LookRotation(path.corners[currentSegment + 1] - nextPos, Vector3.up));
+
+        SetSingleton(new FormationCenterComponent
+        {
+            speed = formationCenter.speed,
+            position = nextPos,
+            rotation = rotation,
+        });
+
+        for (int i = 0; i < path.corners.Length - 1; i++)
+        {
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.blue);
+        }
+
+        Debug.DrawRay(nextPos, math.mul(rotation, Vector3.forward), Color.red);
     }
 }

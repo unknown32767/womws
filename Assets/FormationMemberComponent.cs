@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 [Serializable]
-public class FormationMemberComponent : IComponentData
+public struct FormationMemberComponent : IComponentData
 {
     public float3 offset;
 }

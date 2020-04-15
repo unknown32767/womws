@@ -2,6 +2,7 @@
 
 public struct ShipComponent : IComponentData
 {
+    public float speed;
 }
 
 public struct FactionComponent : IComponentData
