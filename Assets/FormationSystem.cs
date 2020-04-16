@@ -1,61 +1,21 @@
-﻿using Unity.Entities;
+﻿using System.Linq;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 
-//[UpdateAfter(typeof(MouseInputSystem))]
-//public class FormationCenterUpdateSystem : SystemBase
-//{
-//    private const int NodePoolSize = 1024;
-//    private const int MaxIterations = 1024;
-
-//    public NavMeshQuery navMeshQuery;
-//    public bool queryDone;
-
-//    private NativeArray<PolygonId> result;
-//    private int length;
-
-//    protected override void OnCreate()
-//    {
-//        navMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent, NodePoolSize);
-
-//        result = new NativeArray<PolygonId>(NodePoolSize, Allocator.Persistent);
-//        queryDone = true;
-//    }
-
-//    protected override void OnDestroy()
-//    {
-//        navMeshQuery.Dispose();
-//        result.Dispose();
-//    }
-
-//    protected override void OnUpdate()
-//    {
-//        if (queryDone)
-//        {
-//            var formationCenter = GetSingletonEntity<FormationCenterComponent>();
-//        }
-//        else
-//        {
-//            if (navMeshQuery.UpdateFindPath(MaxIterations, out _) == PathQueryStatus.Success)
-//            {
-//                var finalStatus = navMeshQuery.EndFindPath(out length);
-//                var pathResult = navMeshQuery.GetPathResult(result);
-//                queryDone = true;
-//            }
-//        }
-//    }
-//}
-
-[DisableAutoCreation]
-public class FormationCenterUpdateSystem : SystemBase
+public class FormationSystem : SystemBase
 {
     private NavMeshPath path;
     private int currentSegment;
 
+    private float radius;
+
     protected override void OnCreate()
     {
         path = new NavMeshPath();
+
+        radius = Spawner.offsets.Select(x => x.magnitude).Max();
     }
 
     public void UpdatePath(Vector3 end)
@@ -85,6 +45,34 @@ public class FormationCenterUpdateSystem : SystemBase
         {
             var segmentLength = math.distance(nextPos, path.corners[currentSegment + 1]);
 
+            //在该段路线的起点
+            if (nextPos == path.corners[currentSegment])
+            {
+                //转向未完成
+                if (math.dot(math.normalize(math.mul(rotation, Vector3.forward)) , 
+                        math.normalize(path.corners[currentSegment + 1] - path.corners[currentSegment])) < 1)
+                {
+                    var turnAngle = math.radians(Vector3.SignedAngle(math.mul(rotation, Vector3.forward),
+                        path.corners[currentSegment + 1] - path.corners[currentSegment], Vector3.up));
+
+                    var maxTurnAngle = travelDistance / radius;
+
+                    if (maxTurnAngle >= math.abs(turnAngle))
+                    {
+                        rotation = math.normalize(quaternion.LookRotation(
+                            path.corners[currentSegment + 1] - path.corners[currentSegment], Vector3.up));
+                        travelDistance -= math.abs(turnAngle) * radius;
+                    }
+                    else
+                    {
+                        rotation = math.mul(rotation, quaternion.Euler(0, maxTurnAngle * math.sign(turnAngle), 0));
+                        travelDistance = 0;
+                        break;
+                    }
+                }
+            }
+
+            //剩余可用路程长度在本段之内
             if (travelDistance < segmentLength)
             {
                 nextPos = math.lerp(nextPos, path.corners[currentSegment + 1], travelDistance / segmentLength);
@@ -97,9 +85,6 @@ public class FormationCenterUpdateSystem : SystemBase
                 currentSegment += 1;
             }
         }
-
-        if (currentSegment < path.corners.Length - 1)
-            rotation = math.normalize(quaternion.LookRotation(path.corners[currentSegment + 1] - nextPos, Vector3.up));
 
         SetSingleton(new FormationCenterComponent
         {
