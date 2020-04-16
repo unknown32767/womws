@@ -28,8 +28,8 @@ public class MouseInputSystem : SystemBase
                 destination = hitInfo.point
             });
 
-            var formationCenterUpdateSystem = world.GetExistingSystem<FormationCenterUpdateSystem>();
-            formationCenterUpdateSystem.UpdatePath(hitInfo.point);
+            var formationSystem = world.GetExistingSystem<FormationSystem>();
+            formationSystem.UpdatePath(hitInfo.point);
         }
     }
 }

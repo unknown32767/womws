@@ -15,7 +15,7 @@ public class Spawner : MonoBehaviour
     public float radius;
     public float f;
 
-    private List<Vector3> offsets = new List<Vector3>
+    public static List<Vector3> offsets = new List<Vector3>
     {
         new Vector3(0, 0, 2),
         new Vector3(-2, 0, 0),
@@ -32,21 +32,20 @@ public class Spawner : MonoBehaviour
 
         var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-        entityManager.CreateEntity(typeof(UserCommandComponent));
-        var formationCenter = entityManager.CreateEntity(typeof(FormationCenterComponent), typeof(Translation), typeof(Rotation));
+        var userCommand = entityManager.CreateEntity(typeof(UserCommandComponent));
+        entityManager.SetComponentData(userCommand, new UserCommandComponent
+        {
+            destination = basePosition
+        });
 
-        NavMesh.SamplePosition(basePosition, out var hit, 10.0f, NavMesh.AllAreas);
-        entityManager.SetComponentData(formationCenter, new Translation
-        {
-            Value = hit.position,
-        });
-        entityManager.SetComponentData(formationCenter, new Rotation
-        {
-            Value = quaternion.identity,
-        });
+        var formationCenter = entityManager.CreateEntity(typeof(FormationCenterComponent));
+
+        NavMesh.SamplePosition(basePosition, out var hit, 2.0f, NavMesh.AllAreas);
         entityManager.SetComponentData(formationCenter, new FormationCenterComponent
         {
             speed = 10,
+            position = hit.position,
+            rotation = quaternion.identity,
         });
 
         var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
@@ -56,6 +55,8 @@ public class Spawner : MonoBehaviour
             var instance = entityManager.Instantiate(prefab);
 
             var position = basePosition + offset;
+            NavMesh.SamplePosition(position, out hit, 2.0f, NavMesh.AllAreas);
+            position = hit.position;
             var rotation = quaternion.identity;
 
             entityManager.SetComponentData(instance, new Translation { Value = position });

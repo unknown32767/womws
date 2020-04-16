@@ -45,7 +45,9 @@ public class FormationMemberSystem : SystemBase
                 var distance = math.distance(chunkTranslations[i].Value, targetPosition);
 
                 if (distance < 0.0001f)
+                {
                     continue;
+                }
 
                 var maxTravelDistance = chunkShips[i].speed * deltaTime;
 
