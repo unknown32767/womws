@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -11,11 +12,28 @@ public class FormationSystem : SystemBase
 
     private float radius;
 
+    private enum SegmentType
+    {
+        Line,
+        Curve,
+    };
+
+    private List<(SegmentType type, Vector3 node)> smoothPath;
+
     protected override void OnCreate()
     {
         path = new NavMeshPath();
 
         radius = Spawner.offsets.Select(x => x.magnitude).Max();
+    }
+
+    private void SmoothPath()
+    {
+        var corners = path.corners;
+        for (int i = 0; i < corners.Length; i++)
+        {
+            
+        }
     }
 
     public void UpdatePath(Vector3 end)
