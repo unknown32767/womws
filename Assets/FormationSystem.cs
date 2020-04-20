@@ -49,8 +49,6 @@ public class FormationSystem : SystemBase
             var turnAngle = math.abs(math.radians(Vector3.SignedAngle(p1 - p0, p2 - p1, Vector3.up)));
             var turnLength = radius / math.tan(0.5f * (math.PI - turnAngle));
 
-
-            Debug.Log(turnLength);
             var q1 = p1 - (p1 - p0).normalized * turnLength;
             var q2 = p1 + (p2 - p1).normalized * turnLength;
 
@@ -178,16 +176,14 @@ public class FormationSystem : SystemBase
                 {
                     var turnAngle = math.radians(Vector3.SignedAngle(math.mul(rotation, Vector3.forward),
                         path.corners[index + 1] - path.corners[index], Vector3.up));
-                    var fullAngle = math.radians(Vector3.SignedAngle(path.corners[index - 1] - path.corners[index],
+                    var fullAngle = math.radians(Vector3.SignedAngle(path.corners[index] - path.corners[index-1],
                         path.corners[index + 1] - path.corners[index], Vector3.up));
                     var maxTurnAngle = travelDistance / radius * 0.5f;
 
-                    var t = 1 - (math.abs(turnAngle) +maxTurnAngle) / math.abs(fullAngle);
-
-                    Debug.Log(t);
+                    var t = 1-(math.abs(turnAngle) - maxTurnAngle) / math.abs(fullAngle);
 
                     rotation = math.mul(rotation, quaternion.Euler(0, maxTurnAngle * math.sign(turnAngle), 0));
-                    nextPos += (1 - t) * (1 - t) * start + 2 * t * (1 - t) * path.corners[index] + t * t * end;
+                    nextPos = (1 - t) * (1 - t) * start + 2 * t * (1 - t) * path.corners[index] + t * t * end;
                 }
 
                 travelDistance = 0;
