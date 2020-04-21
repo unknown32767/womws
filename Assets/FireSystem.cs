@@ -92,8 +92,8 @@ public class FireSystem : SystemBase, IDeclareReferencedPrefabs
 
     protected override void OnUpdate()
     {
-        var translationType = GetArchetypeChunkComponentType<Translation>();
-        var factionComponentType = GetArchetypeChunkComponentType<FactionComponent>();
+        var translationType = GetArchetypeChunkComponentType<Translation>(true);
+        var factionComponentType = GetArchetypeChunkComponentType<FactionComponent>(true);
         var batteryComponentType = GetArchetypeChunkComponentType<BatteryComponent>();
 
         var random = new Unity.Mathematics.Random((uint) UnityEngine.Random.Range(1, 100000));

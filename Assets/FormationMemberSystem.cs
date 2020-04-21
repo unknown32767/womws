@@ -66,8 +66,8 @@ public class FormationMemberSystem : SystemBase
     {
         var formationCenter = GetSingleton<FormationCenterComponent>();
 
-        var formationMemberType = GetArchetypeChunkComponentType<FormationMemberComponent>();
-        var shipType = GetArchetypeChunkComponentType<ShipComponent>();
+        var formationMemberType = GetArchetypeChunkComponentType<FormationMemberComponent>(true);
+        var shipType = GetArchetypeChunkComponentType<ShipComponent>(true);
         var translationType = GetArchetypeChunkComponentType<Translation>();
         var rotationType = GetArchetypeChunkComponentType<Rotation>();
 
